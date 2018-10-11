@@ -25,6 +25,4 @@ class RobotArm {
     public static void main(String[] args) {
         System.out.println("RobotArm started!");
     }
-    
-    //finn is big gay
 }
