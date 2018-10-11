@@ -8,6 +8,7 @@ class RobotArm {
     private double currentX;
     private double currentY;
 
+    // 2d array of pixels to draw. Pixel is on or off
     private ArrayList<ArrayList<Boolean>> image;
 
     // holds (x, y) in order of drawing
@@ -44,6 +45,13 @@ class RobotArm {
 
         currentX = x2;
         currentY = y2;
+    }
+
+    /**
+     * Adds pixel co-ords from 2d bool array to a list in order of drawing
+     */
+    private void createOrderList() {
+        
     }
 
     /**
