@@ -43,10 +43,12 @@ class RobotArm {
         if (currentX != x1 || currentY != y1) {
             moveTo(x1, y1, "UP");
         }
+        System.out.printf("Line from (%.1f, %.1f) to (%.1f, %.1f)\n", currentX, currentY, x2, y2);
         moveTo(x1, y1, "DOWN");
         moveTo(x2, y2, "DOWN");
         moveTo(x2, y2, "UP");
         // draw line between (x1, y1) and (x2, y2)
+
         currentX = x2;
         currentY = y2;
     }
@@ -60,6 +62,7 @@ class RobotArm {
      * Lifts the pen and moves in a straight line from (x1, y1) to (x2, y2)
      */
     private void moveTo(double x2, double y2, String penState) {
+        System.out.printf("Move from (%.1f, %.1f) to (%.1f, %.1f)\n", currentX, currentY, x2, y2);
         // pen up
         
         // move from (currentX, currentY) to (x2, y2)
@@ -71,6 +74,7 @@ class RobotArm {
             out.printf("%f, %f, %f\n", m1, m2, PEN_DOWN);
         } 
         // pen down
+        
         currentX = x2;
         currentY = y2;
     }
@@ -195,5 +199,6 @@ class RobotArm {
         drawer.loadTestImage();
         drawer.createOrderList();
         drawer.printOrder();
+        drawer.drawImage();
     }
 }
