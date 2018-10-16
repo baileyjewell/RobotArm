@@ -2,11 +2,18 @@ import java.util.*;
 
 class RobotArm {
 
-    public RobotArm() {}
+    
+    
+    private PrintWriter out;
+    private MotorControl controller;
 
     // where the pen currently is
     private double currentX;
     private double currentY;
+    
+    // motor signals for raising and lowering the pen
+    private final double PEN_UP = 1500;
+    private final double PEN_DOWN = 1200;
 
     // 2d array of pixels to draw. Pixel is on or off
     private boolean[][] image = new boolean[10][];
@@ -14,6 +21,15 @@ class RobotArm {
     // holds (x, y) in order of drawing
     private ArrayList<double[]> drawOrder = new ArrayList<>();
 
+    
+    public RobotArm() {
+        try {
+            out = new PrintWriter(new File("commands.txt"));
+        } catch (FileNotFoundException e) {System.out.println("File not found "+ e);}
+        controller = new MotorControl();
+    }
+    
+    
     //// DRAWING METHODS ////
 
     /**
@@ -21,11 +37,12 @@ class RobotArm {
      */
     private void drawLine(double x1, double y1, double x2, double y2) {
         if (currentX != x1 || currentY != y1) {
-            moveTo(x1, y1);
+            moveTo(x1, y1, "UP");
         }
-
+        moveTo(x1, y1, "DOWN");
+        moveTo(x2, y2, "DOWN");
+        moveTo(x2, y2, "UP");
         // draw line between (x1, y1) and (x2, y2)
-
         currentX = x2;
         currentY = y2;
     }
@@ -38,15 +55,21 @@ class RobotArm {
     /**
      * Lifts the pen and moves in a straight line from (x1, y1) to (x2, y2)
      */
-    private void moveTo(double x2, double y2) {
+    private void moveTo(double x2, double y2, String penState) {
         // pen up
+        
         // move from (currentX, currentY) to (x2, y2)
+        double m1 = controller.getMotor1Signal(x2, y2);
+        double m2 = controller.getMotor2Signal(x2, y2);
+        if (penState.equals("UP")) {
+            out.printf("%f, %f, %f\n", m1, m2, PEN_UP);
+        } else if (penState.equals("DOWN")) {
+            out.printf("%f, %f, %f\n", m1, m2, PEN_DOWN);
+        } 
         // pen down
-
         currentX = x2;
         currentY = y2;
     }
-
     /**
      * Adds pixel co-ords from 2d bool array to a list in order of drawing
      */
@@ -114,19 +137,18 @@ class RobotArm {
      * Takes the draw order list and draws lines between adjacent pixels
      */
     private void drawImage() {
-        double x2 = drawOrder.get(0)[0]; // first point to draw
-        double y2 = drawOrder.get(0)[1];
-        moveTo(x2, y2); // moves to first point in picture
-
+        double x2 = drawOrder.get(0).get(0); // first point to draw
+        double y2 = drawOrder.get(0).get(1);
+        moveTo(x2, y2, "UP"); // moves to first point in picture
         for (int i = 1; i < drawOrder.size(); i++) {
-            x2 = drawOrder.get(i)[0];
-            y2 = drawOrder.get(i)[1];
+            x2 = drawOrder.get(i).get(0);
+            y2 = drawOrder.get(i).get(1);
             if (inRange(currentX, currentY, x2, y2)) { // draws line if adjacent
                 drawLine(currentX, currentY, x2, y2);
             }
-            else { // otherwise moves pen to next location
-                moveTo(x2, y2);
-            }
+            //else { // otherwise moves pen to next location
+            //    moveTo(x2, y2);
+            //}
         }
     }
 
