@@ -65,11 +65,11 @@ public class MotorControl {
         double[] a = new double[2];
         if (motor.equals("R")) {
             // cos for x, sin for y
-            a[1] = Math.acos((R_MOTOR_X - xt)/calculateDistance(xt, yt, motor));
-            a[2] = Math.asin((R_MOTOR_Y - yt)/calculateDistance(xt, yt, motor));
+            a[0] = Math.acos((R_MOTOR_X - xt)/calculateDistance(xt, yt, motor));
+            a[1] = Math.asin((R_MOTOR_Y - yt)/calculateDistance(xt, yt, motor));
         } else if (motor.equals("L")) {
-            a[1] = Math.acos((L_MOTOR_X - xt)/calculateDistance(xt, yt, motor));
-            a[2] = Math.asin((L_MOTOR_Y - yt)/calculateDistance(xt, yt, motor));
+            a[0] = Math.acos((L_MOTOR_X - xt)/calculateDistance(xt, yt, motor));
+            a[1] = Math.asin((L_MOTOR_Y - yt)/calculateDistance(xt, yt, motor));
         }
         return a;
     }
