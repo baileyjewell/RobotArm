@@ -1,4 +1,8 @@
 import java.util.*;
+import java.io.PrintWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+
 
 class RobotArm {
 
@@ -137,18 +141,18 @@ class RobotArm {
      * Takes the draw order list and draws lines between adjacent pixels
      */
     private void drawImage() {
-        double x2 = drawOrder.get(0).get(0); // first point to draw
-        double y2 = drawOrder.get(0).get(1);
+        double x2 = drawOrder.get(0)[0]; // first point to draw
+        double y2 = drawOrder.get(0)[1];
         moveTo(x2, y2, "UP"); // moves to first point in picture
         for (int i = 1; i < drawOrder.size(); i++) {
-            x2 = drawOrder.get(i).get(0);
-            y2 = drawOrder.get(i).get(1);
+            x2 = drawOrder.get(i)[0];
+            y2 = drawOrder.get(i)[1];
             if (inRange(currentX, currentY, x2, y2)) { // draws line if adjacent
                 drawLine(currentX, currentY, x2, y2);
             }
-            //else { // otherwise moves pen to next location
-            //    moveTo(x2, y2);
-            //}
+            else { // otherwise moves pen to next location
+                moveTo(x2, y2, "UP");
+            }
         }
     }
 
