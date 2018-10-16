@@ -59,7 +59,7 @@ public class MotorControl {
      * xt, yt = pen coords
      * motor = "L" or "R"
      */
-    public double[] getMotorAngle(double xt, double yt, String motor) {
+    public double[] getElbowAngle(double xt, double yt, String motor) {
         double[] a = new double[2]
         if (motor.equals("R") {
             // cos for x, sin for y
@@ -80,7 +80,7 @@ public class MotorControl {
      */
     public double[] getJointPositions(double xt, double yt, String motor) {
         double[] joint = new double[2];
-        double[] angles = getMotorAngle(xt, yt, motor);
+        double[] angles = getElbowAngle(xt, yt, motor);
         double[] midpoint = calculateMidpoint(xt, yt, motor);
         double distance = midDistance(xt, yt, motor);
         
@@ -110,6 +110,22 @@ public class MotorControl {
                 joint[1] = y4;
             }
         }
+        return joint;
+    }
+    
+    /**
+     * Returns the angle that the motor must turn in order to position the pen at xt, yt in DEGREES
+     * xt, yt = pen coords
+     * motor = "L" or "R"
+     */
+    public double getMotorAngle(double xt, double yt, String motor) {
+        double[] joint = getJointPositions(xt, yt, motor);
+        if (motor.equals("L")) {
+            return Math.toDegrees(Math.atan2(joint[0], joint[1]));
+        } else if (motor.equals("R")) {
+            joint[0] -= MOTOR_DISTANCE;
+            return Math.toDegrees(Math.atan2(joint[0], joint[1]));
+        }
     }
     
     
@@ -127,14 +143,15 @@ public class MotorControl {
     
     
     
-    
     // TODO: better method names
-    public double getMotor1Angle(float a){
+    public double getMotor1Signal(double xt, double yt){
+        double a = getMotorAngle(xt, yt, "L");
         return -10.57*a + 2690;
     }
     
     // TODO: better method names
-    public double getMotor2Angle(float a){
+    public double getMotor2Signal(double xt, double yt){
+        double a = getMotorAngle(xt, yt, "R");
         return -10.288*a + 2093.6;
     }
 
