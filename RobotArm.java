@@ -2,17 +2,31 @@ import java.util.*;
 
 class RobotArm {
 
-    public RobotArm() {}
+    
+    
+    private PrintWriter out;
+    private MotorControl controller;
 
     // where the pen currently is
     private double currentX;
     private double currentY;
+    
+    
+    private final double PEN_UP = 1500;
+    private final double PEN_DOWN = 1200;
 
     // 2d array of pixels to draw. Pixel is on or off
     private ArrayList<ArrayList<Boolean>> image;
 
     // holds (x, y) in order of drawing
     private ArrayList<ArrayList<Double>> drawOrder;
+    
+    
+    public RobotArm() {
+        out = new PrintWriter(new File("commands-" + new Date.toString()));
+        controller = new MotorControl();
+    }
+    
 
     //// DRAWING METHODS ////
 
@@ -21,9 +35,12 @@ class RobotArm {
      */
     private void drawLine(double x1, double y1, double x2, double y2) {
         if (currentX != x1 || currentY != y1) {
-            moveTo(x1, y1);
+            moveTo(x1, y1, "UP");
         }
 
+        moveTo(x1, y1, "DOWN");
+        moveTo(x2, y2, "DOWN");
+        moveTo(x2, y2, "UP");
         // draw line between (x1, y1) and (x2, y2)
 
         currentX = x2;
@@ -38,9 +55,17 @@ class RobotArm {
     /**
      * Lifts the pen and moves in a straight line from (x1, y1) to (x2, y2)
      */
-    private void moveTo(double x2, double y2) {
+    private void moveTo(double x2, double y2, String penState) {
         // pen up
+        
         // move from (currentX, currentY) to (x2, y2)
+        double m1 = controller.getMotor1Signal(x2, y2);
+        double m2 = controller.getMotor2Signal(x2, y2);
+        if (penState.equals("UP")) {
+            out.printf("%f, %f, %f\n", m1, m2, PEN_UP);
+        } else if (penState.equals("DOWN") {
+            out.printf("%f, %f, %f\n", m1, m2, PEN_DOWN);
+        } 
         // pen down
 
         currentX = x2;
