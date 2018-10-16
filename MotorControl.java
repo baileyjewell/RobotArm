@@ -1,5 +1,5 @@
 
-import java.lang.Math
+import java.lang.Math;
 
 public class MotorControl {
 
@@ -21,11 +21,13 @@ public class MotorControl {
      * motor = "L" or "R"
      */
     public double calculateDistance(double xt, double yt, String motor) {
-        if (motor.equals("R") { // right motor
-            return Math.sqrt(Math.pow(xt - R_MOTOR_X, 2) + Math.pow(yt - R_MOTOR_Y), 2);
-        } else if (motor.equals("L") { // left motor
-            return Math.sqrt((xt - L_MOTOR_X)*(xt-L_MOTOR_X)+(yt-L_MOTOR_Y)*(yt-L_MOTOR_Y));
+        double distance = 0;
+        if (motor.equals("R")) { // right motor
+            distance = Math.sqrt(Math.pow(xt - R_MOTOR_X, 2) + Math.pow(yt - R_MOTOR_Y, 2));
+        } else if (motor.equals("L")) { // left motor
+            distance = Math.sqrt((xt - L_MOTOR_X)*(xt-L_MOTOR_X)+(yt-L_MOTOR_Y)*(yt-L_MOTOR_Y));
         }
+        return distance;
     }
     
     /**
@@ -60,12 +62,12 @@ public class MotorControl {
      * motor = "L" or "R"
      */
     public double[] getElbowAngle(double xt, double yt, String motor) {
-        double[] a = new double[2]
-        if (motor.equals("R") {
+        double[] a = new double[2];
+        if (motor.equals("R")) {
             // cos for x, sin for y
             a[1] = Math.acos((R_MOTOR_X - xt)/calculateDistance(xt, yt, motor));
             a[2] = Math.asin((R_MOTOR_Y - yt)/calculateDistance(xt, yt, motor));
-        } else if (motor.equals("L") {
+        } else if (motor.equals("L")) {
             a[1] = Math.acos((L_MOTOR_X - xt)/calculateDistance(xt, yt, motor));
             a[2] = Math.asin((L_MOTOR_Y - yt)/calculateDistance(xt, yt, motor));
         }
@@ -120,12 +122,10 @@ public class MotorControl {
      */
     public double getMotorAngle(double xt, double yt, String motor) {
         double[] joint = getJointPositions(xt, yt, motor);
-        if (motor.equals("L")) {
-            return Math.toDegrees(Math.atan2(joint[0], joint[1]));
-        } else if (motor.equals("R")) {
+        if (motor.equals("R")) { // subtracts distance of second motor
             joint[0] -= MOTOR_DISTANCE;
-            return Math.toDegrees(Math.atan2(joint[0], joint[1]));
         }
+        return Math.toDegrees(Math.atan2(joint[0], joint[1]));
     }
     
     
@@ -155,14 +155,6 @@ public class MotorControl {
         return -10.288*a + 2093.6;
     }
 
-    public void movePen(){
-
-        float angle = 10;
-
-        double m1 = getMotor1Angle(angle);
-        double m2 = getMotor2Angle(angle);
-
-    }
 
     public static void main(String[] arguments){
         new ScanImage();

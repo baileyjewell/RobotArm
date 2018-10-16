@@ -1,4 +1,7 @@
 import java.util.*;
+import java.io.PrintWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
 
 class RobotArm {
 
@@ -23,7 +26,9 @@ class RobotArm {
     
     
     public RobotArm() {
-        out = new PrintWriter(new File("commands-" + new Date.toString()));
+        try {
+        out = new PrintWriter(new File("commands.txt"));
+        } catch (FileNotFoundException e) {System.out.println("File not found "+ e);}
         controller = new MotorControl();
     }
     
@@ -63,7 +68,7 @@ class RobotArm {
         double m2 = controller.getMotor2Signal(x2, y2);
         if (penState.equals("UP")) {
             out.printf("%f, %f, %f\n", m1, m2, PEN_UP);
-        } else if (penState.equals("DOWN") {
+        } else if (penState.equals("DOWN")) {
             out.printf("%f, %f, %f\n", m1, m2, PEN_DOWN);
         } 
         // pen down
@@ -95,7 +100,7 @@ class RobotArm {
     private void drawImage() {
         double x2 = drawOrder.get(0).get(0); // first point to draw
         double y2 = drawOrder.get(0).get(1);
-        moveTo(x2, y2); // moves to first point in picture
+        moveTo(x2, y2, "UP"); // moves to first point in picture
 
         for (int i = 1; i < drawOrder.size(); i++) {
             x2 = drawOrder.get(i).get(0);
@@ -103,9 +108,9 @@ class RobotArm {
             if (inRange(currentX, currentY, x2, y2)) { // draws line if adjacent
                 drawLine(currentX, currentY, x2, y2);
             }
-            else { // otherwise moves pen to next location
-                moveTo(x2, y2);
-            }
+            //else { // otherwise moves pen to next location
+            //    moveTo(x2, y2);
+            //}
         }
     }
 
