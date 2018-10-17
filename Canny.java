@@ -13,55 +13,38 @@ public class Canny{
 //        int[] filter = {1, 2, 1, 2, 4, 2, 1, 2, 1};
 //        int filterWidth = 3;
         int[] filter = {1,4,7,4,1,4,16,26,16,4,7,26,41,26,7,4,16,26,16,4,1,4,7,4,1};
+        int[][] filterGx = {{-1,0,1},{-2,0,2},{-1,0,1}};
         int filterWidth = 5;
         try{
-            image = ImageIO.read(new File("IMG_1269.jpg"));
+            image = ImageIO.read(new File("1_original.jpg"));
             image = grayScale();
             image = blur(image, filter, filterWidth);
-            image = sobelFilter();
+            image = sobelFilter(filterGx);
             File outputfile = new File("saved2.png");
             ImageIO.write(image, "png", outputfile);
         }catch (IOException e){System.out.print(e);}
     }
 
-    public BufferedImage sobelFilter(){
-        int[][] filterGx = {{-1,0,1},{-2,0,2},{-1,0,1}};
-        int[][] filterGy = {{1,2,1},{0,0,0},{-1,2,1}};
+    public BufferedImage sobelFilter(int[][] filter){
 
-        BufferedImage result = image;
+        BufferedImage result = new BufferedImage(image.getWidth(),image.getHeight(),BufferedImage.TYPE_INT_RGB);
 
-        int width = image.getWidth();
-        int height = image.getHeight();
+        for(int i=1;i<image.getWidth()-1;i++){
+            for(int j=1;j<image.getHeight()-1;j++){
+                filter[0][0]=new Color(image.getRGB(i-1,j-1)).getRed();
+                filter[0][1]=new Color(image.getRGB(i-1,j)).getRed();
+                filter[0][2]=new Color(image.getRGB(i-1,j+1)).getRed();
+                filter[1][0]=new Color(image.getRGB(i,j-1)).getRed();
+                filter[1][2]=new Color(image.getRGB(i,j+1)).getRed();
+                filter[2][0]=new Color(image.getRGB(i+1,j-1)).getRed();
+                filter[2][1]=new Color(image.getRGB(i+1,j)).getRed();
+                filter[2][2]=new Color(image.getRGB(i+1,j+1)).getRed();
 
-        for (int y = 1; y < height-1; y++) {
-            for (int x=1; x < width-1; x++) {
-                Color a = new Color(image.getRGB(x - 1, y - 1));
-                Color b = new Color(image.getRGB(x, y - 1));
-                Color c = new Color(image.getRGB(x + 1, y - 1));
-                Color d = new Color(image.getRGB(x - 1, y));
-                Color e = new Color(image.getRGB(x, y));
-                Color f = new Color(image.getRGB(x + 1, y));
-                Color g = new Color(image.getRGB(x - 1, y + 1));
-                Color h = new Color(image.getRGB(x, y + 1));
-                Color i = new Color(image.getRGB(x + 1, y + 1));
+                int gy=(filter[0][0]*-1)+(filter[0][1]*-2)+(filter[0][2]*-1)+(filter[2][0])+(filter[2][1]*2)+(filter[2][2]);
+                int gx=(filter[0][0])+(filter[0][2]*-1)+(filter[1][0]*2)+(filter[1][2]*-2)+(filter[2][0])+(filter[2][2]*-1);
 
-                double pixel_x = (filterGx[0][0] * a.getRed()) + (filterGx[0][1] * b.getRed()) + (filterGx[0][2] * c.getRed()) +
-                        (filterGx[1][0] * d.getRed()) + (filterGx[1][1] * e.getRed()) + (filterGx[1][2] * f.getRed()) +
-                        (filterGx[2][0] * g.getRed()) + (filterGx[2][1] * h.getRed()) + (filterGx[2][2] * i.getRed());
-                double pixel_y =
-                        (filterGy[0][0] * a.getRed()) + (filterGx[0][1] * b.getRed()) + (filterGx[0][2] * c.getRed()) +
-                                (filterGy[1][0] * d.getRed()) + (filterGx[1][1] * e.getRed()) + (filterGx[1][2] * f.getRed()) +
-                                (filterGy[2][0] * g.getRed()) + (filterGx[2][1] * h.getRed()) + (filterGx[2][2] * i.getRed());
-
-                int val = (int)Math.sqrt((pixel_x * pixel_x) + (pixel_y * pixel_y));
-                if(val < 0) {
-                    val = 0;
-                }
-                if(val > 255) {
-                    val = 255;
-                }
-
-                result.setRGB(x,y,val);
+                int edge=(int)Math.sqrt(Math.pow(gy,2)+Math.pow(gx,2));
+                result.setRGB(i,j,(edge<<16 | edge<<8 | edge));
             }
         }
         return result;
