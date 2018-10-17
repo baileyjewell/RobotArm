@@ -8,6 +8,8 @@ import java.util.stream.IntStream;
 public class Canny{
 
     BufferedImage image;
+    double threshold1 = 2.5;
+    double threshold2 = 7.5;
 
     public Canny(){
 //        int[] filter = {1, 2, 1, 2, 4, 2, 1, 2, 1};
@@ -16,13 +18,25 @@ public class Canny{
         int[][] filterGx = {{-1,0,1},{-2,0,2},{-1,0,1}};
         int filterWidth = 5;
         try{
-            image = ImageIO.read(new File("1_original.jpg"));
+            image = ImageIO.read(new File("IMG_1269.jpg"));
             image = grayScale();
             image = blur(image, filter, filterWidth);
             image = sobelFilter(filterGx);
-            File outputfile = new File("saved2.png");
-            ImageIO.write(image, "png", outputfile);
+            File outputfile = new File("saved2.jpg");
+            ImageIO.write(image, "jpg", outputfile);
         }catch (IOException e){System.out.print(e);}
+    }
+
+    public void cannyAlgorithm(){
+        for(int r=0; r<image.getHeight(); r++){
+            for(int c=0; c<image.getWidth(); c++){
+                int cl = new Color(image.getRGB(c,r)).getRed();
+                if(cl > threshold1){
+
+                }
+            }
+        }
+
     }
 
     public BufferedImage sobelFilter(int[][] filter){
@@ -56,11 +70,10 @@ public class Canny{
         int sum = IntStream.of(filter).sum();
 
         int[] input = image.getRGB(0, 0, width, height, null, 0, width);
-        int[] output = new int[input.length];
+
+        BufferedImage result = new BufferedImage(image.getWidth(),image.getHeight(),BufferedImage.TYPE_INT_ARGB);
 
         int pixelIndexOffset = width - filterWidth;
-        int centerOffsetX = filterWidth / 2;
-        int centerOffsetY = filter.length / filterWidth / 2;
 
         for (int h = height - filter.length / filterWidth + 1, w = width - filterWidth + 1, y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
@@ -87,12 +100,10 @@ public class Canny{
                     b /= sum;
                 }
 
-                output[x + centerOffsetX + (y + centerOffsetY) * width] = (r << 16) | (g << 8) | b | 0xFF000000;
+                result.setRGB(x,y,((r << 16) | (g << 8) | b | 0xFF000000));
             }
         }
 
-        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        result.setRGB(0, 0, width, height, output, 0, width);
         return result;
     }
 
