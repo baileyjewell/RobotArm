@@ -9,56 +9,126 @@ import java.util.stream.IntStream;
 public class Canny{
 
     BufferedImage image;
-    double threshold1 = 1.0;
+    double threshold1 = 0.1;
     double threshold2 = 0.3;
 
     public Canny(){
-//        int[] filter = {1, 2, 1, 2, 4, 2, 1, 2, 1};
-//        int filterWidth = 3;
+    }
+
+    public boolean[][] getImage() {
         int[] filter = {1,4,7,4,1,4,16,26,16,4,7,26,41,26,7,4,16,26,16,4,1,4,7,4,1};
         int[][] filterGx = {{-1,0,1},{-2,0,2},{-1,0,1}};
         int filterWidth = 5;
         try{
+            System.out.println("ok");
             image = ImageIO.read(new File("butters.png"));
             image = grayScale();
             image = blur(image, filter, filterWidth);
             image = sobelFilter(filterGx);
-            CannyAlgor();
-            File outputfile = new File("saved2.jpg");
-            ImageIO.write(image, "jpg", outputfile);
+            cord = new int[image.getHeight()][image.getWidth()];
+//            CannyAlgor();
+            BufferedImage resized = createResizedCopy(image,250,150,true);
+            makeImageArray(resized);
+//            for(int r=0; r<150; r++) {
+//                for (int c = 0; c < 250; c++) {
+//                    if(pixels[r][c]){
+//                        resized.setRGB(c,r,new Color(255,255,255).getRGB());
+//                    }else{
+//                        resized.setRGB(c,r,new Color(0).getRGB());
+//                    }
+//                }
+//            }
+//            File outputfile = new File("saved3.jpg");
+//            ImageIO.write(resized, "jpg", outputfile);
         }catch (IOException e){System.out.print(e);}
+        return pixels;
     }
 
-    public void CannyAlgor(){
+    private BufferedImage createResizedCopy(Image originalImage, int scaledWidth, int scaledHeight, boolean preserveAlpha) {
+        System.out.println("resizing...");
+        int imageType = preserveAlpha ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
+        BufferedImage scaledBI = new BufferedImage(scaledWidth, scaledHeight, imageType);
+        Graphics2D g = scaledBI.createGraphics();
+        if (preserveAlpha) {
+            g.setComposite(AlphaComposite.Src);
+        }
+        g.drawImage(originalImage, 0, 0, scaledWidth, scaledHeight, null);
+        g.dispose();
+        return scaledBI;
+    }
 
-        int[][] cord = new int[image.getHeight()][image.getWidth()];
+    int[][] cord;
+    ArrayList<Integer> xCord = new ArrayList<>();
+    ArrayList<Integer> yCord = new ArrayList<>();
+    int white = new Color(255,255,255).getRed();
+    boolean[][] pixels;
 
-        int white = new Color(255,255,255).getRed();
+    private void makeImageArray(BufferedImage img){
+        pixels = new boolean[img.getHeight()][img.getWidth()];
+        for(int r=0; r<img.getHeight(); r++) {
+            for (int c = 0; c < img.getWidth(); c++) {
+                if (img.getRGB(c, r) > new Color(0).getRGB()*0.8) {
+                    pixels[r][c] = true;
+                } else {
+                    pixels[r][c] = false;
+                }
+            }
+        }
 
-        for(int r=0; r<image.getHeight(); r++){
-            for(int c=0; c<image.getWidth(); c++){
-                int cl = new Color(image.getRGB(c,r)).getRed();
-                if (cl > threshold1) {
-                    int maxX = c;
-                    int maxY = r;
-                    int max = 0;
-                    for(int r2 = -1; r2 <= 1; r2++ ) {
-                        for (int c2 = -1; c2 <= 1; c2++) {
-                            if(r+r2 > 0 && r+r2 < image.getHeight() && c+c2 > 0 && c+c2 < image.getWidth()) {
-                                int cl2 = new Color(image.getRGB(c + c2, r + r2)).getRed();
-                                if (cl2 > max) {
-                                    max = cl2;
-                                    maxX = c + c2;
-                                    maxY = r + r2;
-                                }
-                            }
+
+    }
+
+    private void searchPixel(int r, int c){
+        int maxX = c;
+        int maxY = r;
+        int max = 0;
+        xCord.add(maxX);
+        yCord.add(maxY);
+        cord[maxY][maxX] = 1;
+        for(int r2 = -1; r2 <= 1; r2++ ) {
+            for (int c2 = -1; c2 <= 1; c2++) {
+                if(r+r2 > 0 && r+r2 < image.getHeight() && c+c2 > 0 && c+c2 < image.getWidth()) {
+                    if(r+r2 != r && c+c2 != c) {
+                        int cl2 = new Color(image.getRGB(c + c2, r + r2)).getRed();
+                        if (cl2 > max) {
+                            max = cl2;
+                            maxX = c + c2;
+                            maxY = r + r2;
                         }
                     }
-                    if (max < threshold2*white) {
-                        image.setRGB(maxX, maxY, 0);
-                    }else{
-                        image.setRGB(maxX, maxY, 0);
-                        cord[maxY][maxX] = 1;
+                }
+            }
+        }
+        if (max < threshold2*white) {
+//            System.out.println(max);
+//            System.out.println(threshold2*white);
+            image.setRGB(maxX, maxY, 0);
+        }else{
+//            for(int r2 = -1; r2 <= 1; r2++ ) {
+//                for (int c2 = -1; c2 <= 1; c2++) {
+//                    if(r+r2 != maxX && r+r2 != r )
+//                    image.setRGB();
+//                }
+//            }
+            image.setRGB(maxX, maxY, 0);
+            xCord.add(maxX);
+            yCord.add(maxY);
+            cord[maxY][maxX] = 1;
+            searchPixel(maxY,maxX);
+        }
+
+    }
+
+    private void CannyAlgor(){
+        for(int r=0; r<image.getHeight(); r++){
+            for(int c=0; c<image.getWidth(); c++){
+                if(!(xCord.contains(c) && yCord.contains(r))) {
+                    int cl = new Color(image.getRGB(c, r)).getRed();
+//                    System.out.println(threshold1*white);
+//                    System.out.println(cl);
+//                    System.out.println(threshold2*white);
+                    if (cl > threshold1*white) {
+                        searchPixel(r, c);
                     }
                 }
             }
@@ -74,7 +144,7 @@ public class Canny{
         }
     }
 
-    public BufferedImage sobelFilter(int[][] filter){
+    private BufferedImage sobelFilter(int[][] filter){
 
         BufferedImage result = new BufferedImage(image.getWidth(),image.getHeight(),BufferedImage.TYPE_INT_RGB);
 
@@ -99,7 +169,7 @@ public class Canny{
         return result;
     }
 
-    public BufferedImage blur(BufferedImage image, int[] filter, int filterWidth) {
+    private BufferedImage blur(BufferedImage image, int[] filter, int filterWidth) {
         int width = image.getWidth();
         int height = image.getHeight();
         int sum = IntStream.of(filter).sum();
@@ -142,7 +212,7 @@ public class Canny{
         return result;
     }
 
-    public BufferedImage grayScale(){
+    private BufferedImage grayScale(){
 
         for (int i = 0; i < image.getHeight(); i++) {
             for (int j = 0; j < image.getWidth(); j++) {
