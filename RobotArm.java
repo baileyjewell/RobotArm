@@ -6,7 +6,8 @@ import java.io.FileNotFoundException;
 
 class RobotArm {
 
-    
+    String imageName = "image.jpg";
+    int threshHold = 100;
     
     private PrintWriter out;
     private MotorControl controller;
@@ -182,6 +183,34 @@ class RobotArm {
         image[7] = row7;
         image[8] = row8;
         image[9] = row9;
+    }
+    
+    private void createImage() {
+        try {
+            int rgb;
+            int red;
+            int green;
+            int blue;
+            File edgeImageFile = new File(imageName);
+            BufferedImage edgeImage = ImageIO.read(edgeImageFile);
+
+            for(int row = 0; row < imageHeight; row++) {
+                for(int col = 0; col < imageWidth; col++) {
+                    rgb = edgeImage.getRGB(col, row);
+                    red = (rgb >> 16) & 0xFF;
+                    green = (rgb >> 8) & 0xFF;
+                    blue = rgb & 0xFF;
+
+                    if (red+green+blue >= threshHold) {
+                        image[col][row] = true;
+                    }
+                    else {
+                        image[col][row] = false;
+                    }
+                }
+            }
+        }
+        catch (IOException e) {System.out.println(e);}
     }
 
     private void printOrder() {
