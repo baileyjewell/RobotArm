@@ -3,13 +3,14 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.stream.IntStream;
 
 public class Canny{
 
     BufferedImage image;
-    double threshold1 = 2.5;
-    double threshold2 = 7.5;
+    double threshold1 = 1.0;
+    double threshold2 = 0.3;
 
     public Canny(){
 //        int[] filter = {1, 2, 1, 2, 4, 2, 1, 2, 1};
@@ -18,25 +19,59 @@ public class Canny{
         int[][] filterGx = {{-1,0,1},{-2,0,2},{-1,0,1}};
         int filterWidth = 5;
         try{
-            image = ImageIO.read(new File("IMG_1269.jpg"));
+            image = ImageIO.read(new File("butters.png"));
             image = grayScale();
             image = blur(image, filter, filterWidth);
             image = sobelFilter(filterGx);
+            CannyAlgor();
             File outputfile = new File("saved2.jpg");
             ImageIO.write(image, "jpg", outputfile);
         }catch (IOException e){System.out.print(e);}
     }
 
-    public void cannyAlgorithm(){
+    public void CannyAlgor(){
+
+        int[][] cord = new int[image.getHeight()][image.getWidth()];
+
+        int white = new Color(255,255,255).getRed();
+
         for(int r=0; r<image.getHeight(); r++){
             for(int c=0; c<image.getWidth(); c++){
                 int cl = new Color(image.getRGB(c,r)).getRed();
-                if(cl > threshold1){
-
+                if (cl > threshold1) {
+                    int maxX = c;
+                    int maxY = r;
+                    int max = 0;
+                    for(int r2 = -1; r2 <= 1; r2++ ) {
+                        for (int c2 = -1; c2 <= 1; c2++) {
+                            if(r+r2 > 0 && r+r2 < image.getHeight() && c+c2 > 0 && c+c2 < image.getWidth()) {
+                                int cl2 = new Color(image.getRGB(c + c2, r + r2)).getRed();
+                                if (cl2 > max) {
+                                    max = cl2;
+                                    maxX = c + c2;
+                                    maxY = r + r2;
+                                }
+                            }
+                        }
+                    }
+                    if (max < threshold2*white) {
+                        image.setRGB(maxX, maxY, 0);
+                    }else{
+                        image.setRGB(maxX, maxY, 0);
+                        cord[maxY][maxX] = 1;
+                    }
                 }
             }
         }
-
+        for(int r=0; r<image.getHeight(); r++) {
+            for (int c = 0; c < image.getWidth(); c++) {
+                if(cord[r][c] == 1){
+                    image.setRGB(c,r,new Color(255,255,255).getRGB());
+                }else{
+                    image.setRGB(c,r,new Color(0).getRGB());
+                }
+            }
+        }
     }
 
     public BufferedImage sobelFilter(int[][] filter){
