@@ -6,9 +6,8 @@ import java.io.FileNotFoundException;
 
 class RobotArm {
 
-    String imageName = "image.jpg";
-    int threshHold = 100;
     
+    private Canny canny;
     private PrintWriter out;
     private MotorControl controller;
 
@@ -17,14 +16,24 @@ class RobotArm {
     private double currentY;
     
     // motor signals for raising and lowering the pen
-    private final double PEN_UP = 1500;
-    private final double PEN_DOWN = 1200;
+    private final double PEN_UP = 1300;
+    private final double PEN_DOWN = 1500;
 
     // 2d array of pixels to draw. Pixel is on or off
-    private boolean[][] image = new boolean[10][];
+    private boolean[][] image = new boolean[100][100];
 
     // holds (x, y) in order of drawing
     private ArrayList<double[]> drawOrder = new ArrayList<>();
+
+    // limits
+    private static final double LEFT_LIMIT = -100;
+    private static final double RIGHT_LIMIT = 110;
+    private static final double TOP_LIMIT = 360;
+    private static final double BOTTOM_LIMIT = 360;
+
+    double width = RIGHT_LIMIT - LEFT_LIMIT; // 260
+    double height = TOP_LIMIT - BOTTOM_LIMIT; // 170
+
 
     
     public RobotArm() {
@@ -32,6 +41,7 @@ class RobotArm {
             out = new PrintWriter(new File("commands.txt"));
         } catch (FileNotFoundException e) {System.out.println("File not found "+ e);}
         controller = new MotorControl();
+        canny = new Canny();
     }
     
     
@@ -44,7 +54,7 @@ class RobotArm {
         if (currentX != x1 || currentY != y1) {
             moveTo(x1, y1, "UP");
         }
-        //System.out.printf("Line from (%.1f, %.1f) to (%.1f, %.1f)\n", currentX, currentY, x2, y2);
+        System.out.printf("Line from (%.1f, %.1f) to (%.1f, %.1f)\n", currentX, currentY, x2, y2);
         moveTo(x1, y1, "DOWN");
         moveTo(x2, y2, "DOWN");
         moveTo(x2, y2, "UP");
@@ -52,6 +62,7 @@ class RobotArm {
 
         currentX = x2;
         currentY = y2;
+        out.flush(); //REMOVE THIS
     }
 
     /**
@@ -63,16 +74,16 @@ class RobotArm {
      * Lifts the pen and moves in a straight line from (x1, y1) to (x2, y2)
      */
     private void moveTo(double x2, double y2, String penState) {
-        System.out.printf("Move from (%.1f, %.1f) to (%.1f, %.1f) %s\n", currentX, currentY, x2, y2, penState);
+        System.out.printf("Move from (%.1f, %.1f) to (%.1f, %.1f)\n", currentX, currentY, x2, y2);
         // pen up
         
         // move from (currentX, currentY) to (x2, y2)
         double m1 = controller.getMotor1Signal(x2, y2);
         double m2 = controller.getMotor2Signal(x2, y2);
         if (penState.equals("UP")) {
-            out.printf("%f, %f, %f\n", m1, m2, PEN_UP);
+            out.printf("%.0f, %.0f, %.0f\n", m1, m2, PEN_UP);
         } else if (penState.equals("DOWN")) {
-            out.printf("%f, %f, %f\n", m1, m2, PEN_DOWN);
+            out.printf("%.0f, %.0f, %.0f\n", m1, m2, PEN_DOWN);
         } 
         // pen down
         
@@ -94,8 +105,8 @@ class RobotArm {
 
     private void followEdge(int row, int col) {
         double[] xy = new double[2];
-        xy[0] = col;
-        xy[1] = row;
+        xy[0] = col + LEFT_LIMIT;
+        xy[1] = row + TOP_LIMIT;
         drawOrder.add(xy);
         image[row][col] = false;
 
@@ -159,6 +170,7 @@ class RobotArm {
                 moveTo(x2, y2, "UP");
             }
         }
+        out.flush();
     }
 
     private void loadTestImage() {
@@ -184,38 +196,19 @@ class RobotArm {
         image[8] = row8;
         image[9] = row9;
     }
-    
-    private void createImage() {
-        try {
-            int rgb;
-            int red;
-            int green;
-            int blue;
-            File edgeImageFile = new File(imageName);
-            BufferedImage edgeImage = ImageIO.read(edgeImageFile);
-
-            for(int row = 0; row < imageHeight; row++) {
-                for(int col = 0; col < imageWidth; col++) {
-                    rgb = edgeImage.getRGB(col, row);
-                    red = (rgb >> 16) & 0xFF;
-                    green = (rgb >> 8) & 0xFF;
-                    blue = rgb & 0xFF;
-
-                    if (red+green+blue >= threshHold) {
-                        image[col][row] = true;
-                    }
-                    else {
-                        image[col][row] = false;
-                    }
-                }
-            }
-        }
-        catch (IOException e) {System.out.println(e);}
-    }
 
     private void printOrder() {
         for (double[] xy : drawOrder) {
             System.out.println(xy[0] + " " + xy[1]);
+        }
+    }
+
+    private void loadImage() {
+        boolean[][] img = canny.getImage();
+        for (int r = 0; r < 100; r++) {
+            for (int c = 0; c < 100; c++) {
+                image[r][c] = img[r][c];
+            }
         }
     }
 
@@ -225,9 +218,31 @@ class RobotArm {
     public static void main(String[] args) {
         System.out.println("RobotArm started!");
         RobotArm drawer = new RobotArm();
-        drawer.loadTestImage();
-        drawer.createOrderList();
-        drawer.printOrder();
-        drawer.drawImage();
+//        drawer.loadImage();
+//        drawer.createOrderList();
+//        drawer.printOrder();
+//        drawer.drawImage();
+        drawer.drawLine(-50, 330, 50, 330);
+//        for (int i = -50; i <= 50; i++) {
+//            drawer.drawLine(i-1, 400, i, 400);
+//        }
+//        for(int i = 290; i<470; i++){
+//            drawer.drawLine(50, i-1, 50, i);
+//        }
+
+//        drawer.drawLine(RIGHT_LIMIT, BOTTOM_LIMIT, RIGHT_LIMIT, TOP_LIMIT);
+//        drawer.drawLine(RIGHT_LIMIT, TOP_LIMIT, LEFT_LIMIT, TOP_LIMIT);
+//        drawer.drawLine(LEFT_LIMIT, TOP_LIMIT, LEFT_LIMIT, BOTTOM_LIMIT);
+//        drawer.drawLine(10, 010, 200, 200);
+//        MotorControl con1 = new MotorControl();
+//        //// 1945, 1155
+//        System.out.println("MOTOR SIGNALS");
+//        System.out.println(con1.getMotor1Signal(0, 200));
+//        System.out.println(con1.getMotor2Signal(0, 200));
+//
+//        drawer.loadTestImage();
+//        drawer.createOrderList();
+//        drawer.printOrder();
+//        drawer.drawImage();
     }
 }

@@ -20,15 +20,14 @@ public class Canny{
         int[][] filterGx = {{-1,0,1},{-2,0,2},{-1,0,1}};
         int filterWidth = 5;
         try{
-            System.out.println("ok");
-            image = ImageIO.read(new File("butters.png"));
-            image = grayScale();
-            image = blur(image, filter, filterWidth);
-            image = sobelFilter(filterGx);
-            cord = new int[image.getHeight()][image.getWidth()];
+            image = ImageIO.read(new File("circle.png"));
+//            image = grayScale();
+//            image = blur(image, filter, filterWidth);
+//            image = sobelFilter(filterGx);
+//            cord = new int[image.getHeight()][image.getWidth()];
 //            CannyAlgor();
-            BufferedImage resized = createResizedCopy(image,250,150,true);
-            makeImageArray(resized);
+//            BufferedImage resized = createResizedCopy(image,250,100,true);
+            makeImageArray(image);
 //            for(int r=0; r<150; r++) {
 //                for (int c = 0; c < 250; c++) {
 //                    if(pixels[r][c]){
